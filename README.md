@@ -136,8 +136,8 @@ networks: {
 
 
 ## 👨‍💻 Author
-  - name: Manan
-    role: Fullstack + Smart Contracts
-    notes: Hackathon project built for WaveHack using Citrea zkRollup
+  - Name: Manan
+  -  Role: Fullstack + Smart Contracts
+  -  Notes: Hackathon project built for WaveHack using Citrea zkRollup
 
  
