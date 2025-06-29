@@ -81,6 +81,8 @@ factra/
 | Invoice funding | ✅ Calls `fundInvoice()` using wallet |
 | Viewing txs | ✅ Explorer: [explorer.testnet.citrea.xyz](https://explorer.testnet.citrea.xyz) |
 
+---
+
 ### Citrea RPC Details:
 
 ```ts
@@ -91,5 +93,46 @@ networks: {
     accounts: [process.env.PRIVATE_KEY],
   }
 }
+```
+---
+### Run Locally:
 
+run_locally:
+  steps:
+    - step: Clone and Install
+      shell: bash
+      commands:
+        - git clone https://github.com/yourname/factra.git
+        - cd factra
+        - pnpm install
 
+    - step: Setup Environment
+      files:
+        - path: .env
+          content: |
+            PRIVATE_KEY=your-testnet-private-key
+      note: Get cBTC from [Citrea Faucet](https://faucet.testnet.citrea.xyz)
+
+    - step: Deploy Smart Contract
+      shell: bash
+      commands:
+        - npx hardhat compile --tsconfig tsconfig.hardhat.json
+        - npx hardhat run scripts/deploy.ts --network citrea --tsconfig tsconfig.hardhat.json
+
+    - step: Start Frontend
+      shell: bash
+      commands:
+        - pnpm dev
+
+future_improvements:
+  - Integrate ERC-721 tokenization of invoices
+  - Add credit scoring and oracle-based risk rating
+  - Fully on-chain invoice validation
+  - Supabase/Postgres database for invoice indexing
+  - Auto payment collection (via `markAsPaid`)
+  - Mainnet support post Citrea mainnet launch
+
+authors:
+  - name: Manan
+    role: Fullstack + Smart Contracts
+    notes: Hackathon project built for WaveHack using Citrea zkRollup
