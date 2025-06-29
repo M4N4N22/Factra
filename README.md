@@ -133,11 +133,11 @@ networks: {
   - Mainnet support post Citrea mainnet launch
 
 ---
----
 
-##👨‍💻 Author
+
+## 👨‍💻 Author
   - name: Manan
     role: Fullstack + Smart Contracts
     notes: Hackathon project built for WaveHack using Citrea zkRollup
 
-    ---
+ 
