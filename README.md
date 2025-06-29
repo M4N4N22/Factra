@@ -15,6 +15,15 @@
 
 ---
 
+---
+
+## 🔗 Live Demo
+
+👉 [https://factra-three.vercel.app/](https://factra-three.vercel.app)  
+🎥 [Watch Demo on YouTube](https://youtu.be/tKkvuEK4veY?si=1k3dj1cqJPybKvXI)
+---
+
+
 ## 🛠️ Tech Stack
 
 | Layer | Tech |
