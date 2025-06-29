@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 Factra — B2B Invoice Financing on Bitcoin via Citrea zkRollup
 
-## Getting Started
+**Factra** brings **real-world B2B invoice financing** to the **DeFi ecosystem**, built directly on Bitcoin using **Citrea zkRollup**. It enables businesses to tokenize invoices, get early liquidity, and allows investors to fund them with yield — fully on-chain, gas-efficient, and censorship-resistant.
 
-First, run the development server:
+> 🚀 Built for WaveHack · Powered by Citrea zkRollup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚡️ Why Factra?
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 💸 **Bridges TradFi and DeFi**: B2B financing is a trillion-dollar off-chain market — Factra brings it to Bitcoin.
+- 🧾 **Invoice-as-a-Token**: Each invoice is tokenized and represents real-world receivables.
+- 💰 **Earn Yield on Invoices**: Fund invoices and earn yield on your BTC, trustlessly.
+- 🛡️ **Built on Bitcoin (Citrea)**: Uses zkRollup to offer smart contract capabilities over Bitcoin's security.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+| Layer | Tech |
+|-------|------|
+| Smart Contracts | Solidity (`Factra.sol`) |
+| Chain | [Citrea Testnet](https://explorer.testnet.citrea.xyz) |
+| Frontend | Next.js 14 (App Router) |
+| Wallet & Web3 | Wagmi v1 + RainbowKit + Ethers.js v6 |
+| UI | ShadCN (Tailwind-based) |
+| Dev Tools | Hardhat + Typechain |
+| Infra | Citrea RPC + Testnet Faucet |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧠 How It Works
 
-## Deploy on Vercel
+1. **Invoice Issuer** creates an invoice by providing:
+   - Amount (in BTC)
+   - Due date
+   - Reference ID
+   - Description
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Invoice is tokenized on-chain** (via smart contract).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Investor/Funder** browses live invoices on the marketplace and funds any invoice of choice.
+
+4. **Payment is sent to issuer**, and investor receives a yield once the invoice is paid.
+
+5. All data is **immutable**, visible on-chain on Citrea’s explorer.
+
+---
+
+## 🏗️ Folder Structure
+
