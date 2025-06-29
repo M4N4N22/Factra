@@ -47,5 +47,49 @@
 
 ---
 
-## 🏗️ Folder Structure
+## 📂 Project Structure
+
+```
+factra/
+├── app/ # Next.js App Router structure
+│ ├── layout.tsx
+│ └── page.tsx
+├── components/ # Reusable UI components
+│ └── dashboard/
+├── hooks/ # Wagmi + contract interaction hooks
+├── lib/ # utils like wagmi.ts, config.ts
+├── contracts/
+│ └── Factra.sol # Core smart contract
+├── scripts/
+│ └── deploy.ts # Hardhat deployment script
+├── .env # Contains PRIVATE_KEY
+├── hardhat.config.ts # Network config (Citrea RPC + Chain ID)
+└── tsconfig.hardhat.json # Hardhat-specific TS config
+└── README.md              # You're reading it!
+```
+
+---
+
+## 🔗 Citrea Integration
+
+### ✅ Citrea zkRollup used for:
+
+| Functionality | Integration |
+|---------------|-------------|
+| Smart contract deployment | ✅ Deployed `Factra.sol` on Citrea |
+| Invoice creation | ✅ Calls `createInvoice()` via Wagmi/Ethers |
+| Invoice funding | ✅ Calls `fundInvoice()` using wallet |
+| Viewing txs | ✅ Explorer: [explorer.testnet.citrea.xyz](https://explorer.testnet.citrea.xyz) |
+
+### Citrea RPC Details:
+
+```ts
+networks: {
+  citrea: {
+    url: "https://rpc.testnet.citrea.xyz",
+    chainId: 61774,
+    accounts: [process.env.PRIVATE_KEY],
+  }
+}
+
 
