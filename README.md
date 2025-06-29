@@ -97,8 +97,6 @@ networks: {
 ---
 ### Run Locally:
 
-run_locally:
-  steps:
     - step: Clone and Install
       shell: bash
       commands:
@@ -124,7 +122,9 @@ run_locally:
       commands:
         - pnpm dev
 
-future_improvements:
+        ---
+
+## 🌱 Future Improvements
   - Integrate ERC-721 tokenization of invoices
   - Add credit scoring and oracle-based risk rating
   - Fully on-chain invoice validation
@@ -132,7 +132,12 @@ future_improvements:
   - Auto payment collection (via `markAsPaid`)
   - Mainnet support post Citrea mainnet launch
 
-authors:
+---
+---
+
+##👨‍💻 Author
   - name: Manan
     role: Fullstack + Smart Contracts
     notes: Hackathon project built for WaveHack using Citrea zkRollup
+
+    ---
