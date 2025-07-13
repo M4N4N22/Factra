@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FundInvoiceModal } from "@/components/dashboard/FundInvoiceModal";
+import { usePublicClient } from "wagmi";
+import { formatEther } from "viem";
+import { FACTRA_ABI } from "@/lib/abi/factra"; // You need to generate this via Typechain or copy manually
+import { FACTRA_ADDRESS } from "@/lib/constants/factra"; // your deployed address here
 
 interface MarketplaceInvoice {
   id: string;
@@ -24,13 +30,134 @@ interface MarketplaceInvoice {
   yield: number;
 }
 
+type RawInvoice = [
+  string,   // id
+  string,   // issuer
+  // string, // buyer (commented out)
+  bigint,   // amount
+  number,   // dueDate (unix timestamp)
+  number,   // status
+  string,   // businessName
+  string,   // sector
+  number,   // rating
+  number    // discountRate
+];
+
+
 export const InvoiceMarketplace = () => {
+  const [invoices, setInvoices] = useState<MarketplaceInvoice[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("yield");
   const [filterSector, setFilterSector] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] =
     useState<MarketplaceInvoice | null>(null);
+
+  const client = usePublicClient();
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (!client) {
+        console.log("🚫 No public client found.");
+        return;
+      }
+  
+      try {
+        const count = await client.readContract({
+          address: FACTRA_ADDRESS,
+          abi: FACTRA_ABI,
+          functionName: "getInvoiceCount",
+        });
+  
+        console.log("📦 Invoice count:", count);
+  
+        if (Number(count) === 0) {
+          console.log("⚠️ No invoices found on-chain.");
+          return;
+        }
+  
+        const promises = Array.from({ length: Number(count) }, (_, i) =>
+          client.readContract({
+            address: FACTRA_ADDRESS,
+            abi: FACTRA_ABI,
+            functionName: "getInvoice",
+            args: [BigInt(i + 1)],
+          })
+        );
+  
+        const raw = await Promise.all(promises);
+  
+        console.log("📥 Raw invoice data:", raw);
+  
+        const now = Math.floor(Date.now() / 1000);
+  
+        const processed: MarketplaceInvoice[] = (raw as RawInvoice[])
+          .map((r: RawInvoice, index: number) => {
+            const [
+              id,
+              issuer,
+              //buyer,
+              amount,
+              dueDate,
+              status,
+              businessName,
+              sector,
+              rating,
+              discountRate,
+            ] = r;
+  
+            console.log(`🧾 Invoice ${index + 1}:`, {
+              id,
+              status,
+              issuer,
+              amount: amount.toString(),
+              businessName,
+              sector,
+              rating,
+              discountRate,
+              dueDate: Number(dueDate),
+            });
+  
+            if (Number(status) !== 0) {
+              console.log(`⛔ Invoice ${id} skipped: not in "Created" status`);
+              return null;
+            }
+  
+            const maturityDays = Math.max(
+              1,
+              Math.floor((Number(dueDate) - now) / 86400)
+            );
+  
+            const discount = Number(discountRate);
+            const yieldEst =
+              maturityDays > 0 ? discount / (maturityDays / 365) : 0;
+  
+            return {
+              id: id.toString(),
+              tokenId: `TKN-${id.toString().padStart(3, "0")}`,
+              amount: parseFloat(formatEther(amount)),
+              discountRate: discount,
+              maturityDays,
+              business: businessName,
+              rating: Number(rating) / 10,
+              sector,
+              yield: parseFloat(yieldEst.toFixed(2)),
+            };
+          })
+          .filter((inv): inv is MarketplaceInvoice => inv !== null);
+  
+        console.log("✅ Processed invoices:", processed);
+  
+        setInvoices(processed);
+      } catch (err) {
+        console.error("❌ Error fetching invoices:", err);
+      }
+    };
+  
+    fetchInvoices();
+  }, [client]);
+  
+  
 
   const openModal = (invoice: MarketplaceInvoice) => {
     setSelectedInvoice(invoice);
@@ -41,42 +168,6 @@ export const InvoiceMarketplace = () => {
     setModalOpen(false);
     setSelectedInvoice(null);
   };
-
-  const invoices: MarketplaceInvoice[] = [
-    {
-      id: "1",
-      tokenId: "TKN-001",
-      amount: 0.5,
-      discountRate: 8.5,
-      maturityDays: 30,
-      business: "TechCorp Ltd",
-      rating: 4.2,
-      sector: "Technology",
-      yield: 10.2,
-    },
-    {
-      id: "2",
-      tokenId: "TKN-002",
-      amount: 1.2,
-      discountRate: 6.0,
-      maturityDays: 45,
-      business: "Manufacturing Co",
-      rating: 4.8,
-      sector: "Manufacturing",
-      yield: 7.8,
-    },
-    {
-      id: "3",
-      tokenId: "TKN-003",
-      amount: 0.3,
-      discountRate: 12.0,
-      maturityDays: 15,
-      business: "Retail Solutions",
-      rating: 3.9,
-      sector: "Retail",
-      yield: 18.5,
-    },
-  ];
 
   const filteredInvoices = invoices
     .filter(
@@ -177,7 +268,10 @@ export const InvoiceMarketplace = () => {
                       You&apos;ll receive
                     </div>
                     <div className="font-semibold text-foreground">
-                      {(invoice.amount * (1 + invoice.yield / 100)).toFixed(4)}{" "}
+                      {(
+                        invoice.amount *
+                        (1 + invoice.yield / 100)
+                      ).toFixed(4)}{" "}
                       BTC
                     </div>
                   </div>
@@ -193,6 +287,7 @@ export const InvoiceMarketplace = () => {
           </Card>
         ))}
       </div>
+
       {selectedInvoice && (
         <FundInvoiceModal
           open={modalOpen}
