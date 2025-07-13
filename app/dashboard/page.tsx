@@ -75,7 +75,7 @@ const Dashboard = () => {
           <TabsContent value="dashboard" className="space-y-8">
             <DashboardStats />
             
-            <div className="grid gap-8 lg:grid-cols-2">
+            <div className=" gap-8 lg:grid-cols-2 hidden">
               <InvoiceTable
                 title="Your Invoices"
                 invoices={sellerInvoices}

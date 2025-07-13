@@ -28,6 +28,8 @@ export interface FactraInterface extends Interface {
     nameOrSignature:
       | "createInvoice"
       | "fundInvoice"
+      | "getInvoice"
+      | "getInvoiceCount"
       | "invoiceCounter"
       | "invoices"
       | "markAsPaid"
@@ -39,11 +41,26 @@ export interface FactraInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "createInvoice",
-    values: [BigNumberish, BigNumberish]
+    values: [
+      BigNumberish,
+      BigNumberish,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "fundInvoice",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getInvoice",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getInvoiceCount",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "invoiceCounter",
@@ -66,6 +83,11 @@ export interface FactraInterface extends Interface {
     functionFragment: "fundInvoice",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getInvoice", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getInvoiceCount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "invoiceCounter",
     data: BytesLike
@@ -79,19 +101,31 @@ export namespace InvoiceCreatedEvent {
     id: BigNumberish,
     issuer: AddressLike,
     amount: BigNumberish,
-    dueDate: BigNumberish
+    dueDate: BigNumberish,
+    businessName: string,
+    sector: string,
+    rating: BigNumberish,
+    discountRate: BigNumberish
   ];
   export type OutputTuple = [
     id: bigint,
     issuer: string,
     amount: bigint,
-    dueDate: bigint
+    dueDate: bigint,
+    businessName: string,
+    sector: string,
+    rating: bigint,
+    discountRate: bigint
   ];
   export interface OutputObject {
     id: bigint;
     issuer: string;
     amount: bigint;
     dueDate: bigint;
+    businessName: string;
+    sector: string;
+    rating: bigint;
+    discountRate: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -173,25 +207,68 @@ export interface Factra extends BaseContract {
   ): Promise<this>;
 
   createInvoice: TypedContractMethod<
-    [amount: BigNumberish, dueDate: BigNumberish],
+    [
+      amount: BigNumberish,
+      dueDate: BigNumberish,
+      businessName: string,
+      sector: string,
+      rating: BigNumberish,
+      discountRate: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
 
   fundInvoice: TypedContractMethod<[id: BigNumberish], [void], "payable">;
 
+  getInvoice: TypedContractMethod<
+    [id: BigNumberish],
+    [
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint
+      ]
+    ],
+    "view"
+  >;
+
+  getInvoiceCount: TypedContractMethod<[], [bigint], "view">;
+
   invoiceCounter: TypedContractMethod<[], [bigint], "view">;
 
   invoices: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, bigint, bigint, bigint] & {
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint
+      ] & {
         id: bigint;
         issuer: string;
         buyer: string;
         amount: bigint;
         dueDate: bigint;
         status: bigint;
+        businessName: string;
+        sector: string;
+        rating: bigint;
+        discountRate: bigint;
       }
     ],
     "view"
@@ -206,13 +283,43 @@ export interface Factra extends BaseContract {
   getFunction(
     nameOrSignature: "createInvoice"
   ): TypedContractMethod<
-    [amount: BigNumberish, dueDate: BigNumberish],
+    [
+      amount: BigNumberish,
+      dueDate: BigNumberish,
+      businessName: string,
+      sector: string,
+      rating: BigNumberish,
+      discountRate: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
   getFunction(
     nameOrSignature: "fundInvoice"
   ): TypedContractMethod<[id: BigNumberish], [void], "payable">;
+  getFunction(
+    nameOrSignature: "getInvoice"
+  ): TypedContractMethod<
+    [id: BigNumberish],
+    [
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint
+      ]
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getInvoiceCount"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "invoiceCounter"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -221,13 +328,28 @@ export interface Factra extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, bigint, bigint, bigint] & {
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint
+      ] & {
         id: bigint;
         issuer: string;
         buyer: string;
         amount: bigint;
         dueDate: bigint;
         status: bigint;
+        businessName: string;
+        sector: string;
+        rating: bigint;
+        discountRate: bigint;
       }
     ],
     "view"
@@ -259,7 +381,7 @@ export interface Factra extends BaseContract {
   >;
 
   filters: {
-    "InvoiceCreated(uint256,address,uint256,uint256)": TypedContractEvent<
+    "InvoiceCreated(uint256,address,uint256,uint256,string,string,uint8,uint8)": TypedContractEvent<
       InvoiceCreatedEvent.InputTuple,
       InvoiceCreatedEvent.OutputTuple,
       InvoiceCreatedEvent.OutputObject

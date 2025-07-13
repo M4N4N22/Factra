@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\Full stack projects\\Factra\\factra\\contracts\\Factra.sol": {
-      "lastModificationDate": 1751057558158,
-      "contentHash": "db4f0d557f3635d67a7b310aa2d632cb",
+      "lastModificationDate": 1752391017482,
+      "contentHash": "5e5ea70fc477328534a9750227d0db25",
       "sourceName": "contracts/Factra.sol",
       "solcConfig": {
         "version": "0.8.24",

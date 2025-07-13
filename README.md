@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 Factra — B2B Invoice Financing on Bitcoin via Citrea zkRollup
 
-## Getting Started
+**Factra** brings **real-world B2B invoice financing** to the **DeFi ecosystem**, built directly on Bitcoin using **Citrea zkRollup**. It enables businesses to tokenize invoices, get early liquidity, and allows investors to fund them with yield — fully on-chain, gas-efficient, and censorship-resistant.
 
-First, run the development server:
+> 🚀 Built for WaveHack · Powered by Citrea zkRollup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## ⚡️ Why Factra?
+
+- 💸 **Bridges TradFi and DeFi**: B2B financing is a trillion-dollar off-chain market — Factra brings it to Bitcoin.
+- 🧾 **Invoice-as-a-Token**: Each invoice is tokenized and represents real-world receivables.
+- 💰 **Earn Yield on Invoices**: Fund invoices and earn yield on your BTC, trustlessly.
+- 🛡️ **Built on Bitcoin (Citrea)**: Uses zkRollup to offer smart contract capabilities over Bitcoin's security.
+
+---
+
+
+## 🔗 Live Demo
+
+👉 [https://factra-three.vercel.app/](https://factra-three.vercel.app)  
+🎥 [Watch Demo on YouTube](https://youtu.be/tKkvuEK4veY?si=1k3dj1cqJPybKvXI)
+---
+
+
+## 🛠️ Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Smart Contracts | Solidity (`Factra.sol`) |
+| Chain | [Citrea Testnet](https://explorer.testnet.citrea.xyz) |
+| Frontend | Next.js 14 (App Router) |
+| Wallet & Web3 | Wagmi v1 + RainbowKit + Ethers.js v6 |
+| UI | ShadCN (Tailwind-based) |
+| Dev Tools | Hardhat + Typechain |
+| Infra | Citrea RPC + Testnet Faucet |
+
+---
+
+## 🧠 How It Works
+
+1. **Invoice Issuer** creates an invoice by providing:
+   - Amount (in BTC)
+   - Due date
+   - Reference ID
+   - Description
+
+2. **Invoice is tokenized on-chain** (via smart contract).
+
+3. **Investor/Funder** browses live invoices on the marketplace and funds any invoice of choice.
+
+4. **Payment is sent to issuer**, and investor receives a yield once the invoice is paid.
+
+5. All data is **immutable**, visible on-chain on Citrea’s explorer.
+
+---
+
+## 📂 Project Structure
+
+```
+factra/
+├── app/ # Next.js App Router structure
+│ ├── layout.tsx
+│ └── page.tsx
+├── components/ # Reusable UI components
+│ └── dashboard/
+├── hooks/ # Wagmi + contract interaction hooks
+├── lib/ # utils like wagmi.ts, config.ts
+├── contracts/
+│ └── Factra.sol # Core smart contract
+├── scripts/
+│ └── deploy.ts # Hardhat deployment script
+├── .env # Contains PRIVATE_KEY
+├── hardhat.config.ts # Network config (Citrea RPC + Chain ID)
+└── tsconfig.hardhat.json # Hardhat-specific TS config
+└── README.md              # You're reading it!
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔗 Citrea Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ✅ Citrea zkRollup used for:
 
-## Learn More
+| Functionality | Integration |
+|---------------|-------------|
+| Smart contract deployment | ✅ Deployed `Factra.sol` on Citrea |
+| Invoice creation | ✅ Calls `createInvoice()` via Wagmi/Ethers |
+| Invoice funding | ✅ Calls `fundInvoice()` using wallet |
+| Viewing txs | ✅ Explorer: [explorer.testnet.citrea.xyz](https://explorer.testnet.citrea.xyz) |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Citrea RPC Details:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```ts
+networks: {
+  citrea: {
+    url: "https://rpc.testnet.citrea.xyz",
+    chainId: 61774,
+    accounts: [process.env.PRIVATE_KEY],
+  }
+}
+```
+---
+### Run Locally:
 
-## Deploy on Vercel
+    - step: Clone and Install
+      shell: bash
+      commands:
+        - git clone https://github.com/yourname/factra.git
+        - cd factra
+        - pnpm install
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    - step: Setup Environment
+      files:
+        - path: .env
+          content: |
+            PRIVATE_KEY=your-testnet-private-key
+      note: Get cBTC from [Citrea Faucet](https://faucet.testnet.citrea.xyz)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    - step: Deploy Smart Contract
+      shell: bash
+      commands:
+        - npx hardhat compile --tsconfig tsconfig.hardhat.json
+        - npx hardhat run scripts/deploy.ts --network citrea --tsconfig tsconfig.hardhat.json
+
+    - step: Start Frontend
+      shell: bash
+      commands:
+        - pnpm dev
+
+        ---
+
+## 🌱 Future Improvements
+  - Integrate ERC-721 tokenization of invoices
+  - Add credit scoring and oracle-based risk rating
+  - Fully on-chain invoice validation
+  - Supabase/Postgres database for invoice indexing
+  - Auto payment collection (via `markAsPaid`)
+  - Mainnet support post Citrea mainnet launch
+
+---
+
+
+## 👨‍💻 Author
+  - Name: Manan
+  -  Role: Fullstack + Smart Contracts
+  -  Notes: Hackathon project built for WaveHack using Citrea zkRollup
+
+ 
