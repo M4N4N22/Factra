@@ -22,9 +22,15 @@ export const FinalCtaSection = () => {
                 Launch App
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-6 text-lg ">
-              View Docs
-            </Button>
+            <Link
+              href="https://github.com/M4N4N22/Factra"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="lg" variant="outline" className="px-8 py-6 text-lg">
+                View Docs
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

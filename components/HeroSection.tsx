@@ -11,25 +11,28 @@ export const HeroSection = () => {
           </h1>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            A decentralized factoring protocol powered by <span className="text-foreground font-semibold">Citrea&apos;s zkRollup</span>. Get
-            paid early, invest in yield-bearing invoices, and build trustless
-            cash flow — all on <span className="text-foreground font-semibold">Bitcoin</span>.
+            A decentralized factoring protocol powered by{" "}
+            <span className="text-foreground font-semibold">
+              Citrea&apos;s zkRollup
+            </span>
+            . Get paid early, invest in yield-bearing invoices, and build
+            trustless cash flow — all on{" "}
+            <span className="text-foreground font-semibold">Bitcoin</span>.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center z-10">
-          <Link href="/dashboard">
+            <Link href="/dashboard">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold rounded-full cursor-pointer"
               >
                 Launch App
-               
               </Button>
             </Link>
             <Button
               size="lg"
               variant="outline"
-              className="px-8 py-6 text-lg "
+              className="px-8 py-6 text-lg hidden"
             >
               View Marketplace
             </Button>
@@ -38,7 +41,6 @@ export const HeroSection = () => {
       </div>
 
       {/* Decorative elements */}
-   
     </section>
   );
 };
