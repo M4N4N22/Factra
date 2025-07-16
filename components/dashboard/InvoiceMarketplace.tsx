@@ -20,6 +20,7 @@ import { FACTRA_ADDRESS } from "@/lib/constants/factra"; // your deployed addres
 
 interface MarketplaceInvoice {
   id: string;
+  issuer: string;
   tokenId: string;
   amount: number;
   discountRate: number;
@@ -33,7 +34,7 @@ interface MarketplaceInvoice {
 type RawInvoice = [
   string,   // id
   string,   // issuer
-  // string, // buyer (commented out)
+  string, // buyer 
   bigint,   // amount
   number,   // dueDate (unix timestamp)
   number,   // status
@@ -96,7 +97,7 @@ export const InvoiceMarketplace = () => {
             const [
               id,
               issuer,
-              //buyer,
+              _buyer,
               amount,
               dueDate,
               status,
@@ -134,7 +135,7 @@ export const InvoiceMarketplace = () => {
   
             return {
               id: id.toString(),
-              tokenId: `TKN-${id.toString().padStart(3, "0")}`,
+              issuer : issuer.toString(),
               amount: parseFloat(formatEther(amount)),
               discountRate: discount,
               maturityDays,
@@ -258,7 +259,7 @@ export const InvoiceMarketplace = () => {
                   </div>
 
                   <div className="mt-2 text-xs text-muted-foreground">
-                    Token ID: {invoice.tokenId}
+                    Issued by: {invoice.issuer}
                   </div>
                 </div>
 

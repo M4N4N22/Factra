@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useWriteContract,
-  useWaitForTransactionReceipt,
-} from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 
 import { FACTRA_CONTRACT_ADDRESS } from "@/lib/contract";
 import { FACTRA_ABI } from "@/lib/abi/factra";
@@ -11,7 +8,12 @@ import { parseEther } from "viem";
 
 // ⬇️ Create Invoice Hook
 export function useCreateInvoice() {
-  const { data: hash, writeContract, isPending } = useWriteContract();
+  const {
+    writeContract,
+    data: hash,
+    status: writeStatus,
+    error,
+  } = useWriteContract();
   const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const create = (
@@ -37,18 +39,29 @@ export function useCreateInvoice() {
     });
   };
 
-  return { create, isPending, isLoading, isSuccess, hash };
+  return {
+    create,
+    isPending: writeStatus === "pending",
+    isLoading,
+    isSuccess,
+    hash,
+  };
 }
 
 // ⬇️ Fund Invoice Hook
 export function useFundInvoice() {
-  const { writeContractAsync, data: hash, isPending } = useWriteContract();
+  const {
+    writeContract,
+    data: hash,
+    status: writeStatus,
+    error,
+  } = useWriteContract();
   const { isSuccess, isLoading } = useWaitForTransactionReceipt({ hash });
 
   const fund = async (invoiceId: number, amount: string) => {
     const amountInWei = parseEther(amount);
 
-    await writeContractAsync({
+    await writeContract({
       address: FACTRA_CONTRACT_ADDRESS,
       abi: FACTRA_ABI,
       functionName: "fundInvoice",
@@ -57,12 +70,23 @@ export function useFundInvoice() {
     });
   };
 
-  return { fund, isPending, isSuccess, isLoading, hash };
+  return {
+    fund,
+    isPending: writeStatus === "pending",
+    isSuccess,
+    isLoading,
+    hash,
+  };
 }
 
 // ⬇️ Mark as Paid Hook
 export function useMarkAsPaid() {
-  const { data: hash, writeContract, isPending } = useWriteContract();
+  const {
+    writeContract,
+    data: hash,
+    status: writeStatus,
+    error,
+  } = useWriteContract();
   const { isLoading, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const markPaid = (id: number) => {
@@ -74,5 +98,11 @@ export function useMarkAsPaid() {
     });
   };
 
-  return { markPaid, isPending, isLoading, isSuccess, hash };
+  return {
+    markPaid,
+    isPending: writeStatus === "pending",
+    isLoading,
+    isSuccess,
+    hash,
+  };
 }
