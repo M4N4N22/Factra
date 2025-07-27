@@ -8,7 +8,7 @@ import { FACTRA_ADDRESS } from "@/lib/constants/factra";
 import { formatEther } from "viem";
 import { useAccount, useBalance } from "wagmi";
 
-type RawInvoice = [
+export type RawInvoice = [
   bigint, // id
   string, // issuer
   string, // buyer
@@ -22,6 +22,17 @@ type RawInvoice = [
 ];
 
 export const DashboardStats = () => {
+  const [btcUsdPrice, setBtcUsdPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    // fetch live BTC price in USD
+    fetch("https://blockchain.info/ticker")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.USD?.last) setBtcUsdPrice(data.USD.last);
+      })
+      .catch((err) => console.error("Error fetching BTC price:", err));
+  }, []);
   const [stats, setStats] = useState({
     outstandingCount: 0,
     outstandingTotal: "0",
@@ -112,22 +123,26 @@ export const DashboardStats = () => {
             continue;
           }
 
-          const payout = amountBn + (amountBn * discountBn) / 100n;
+          const payout = amountBn;
 
           switch (Number(status)) {
             case 0: // Created (outstanding)
               outstandingCount++;
               outstandingTotal += amountBn;
               break;
-            case 1: // Funded (purchased)
-              purchasedCount++;
-              investedTotal += amountBn;
-              if (Number(dueDate) < now + 30 * 86400) {
-                expectedPayout += payout;
+            case 1: {
+              const funder = inv[1]; // or whichever index represents funder address
+
+              if (funder.toLowerCase() === address?.toLowerCase()) {
+                purchasedCount++;
+                investedTotal += amountBn;
+
+                if (Number(dueDate) < now + 30 * 86400) {
+                  expectedPayout += payout;
+                }
               }
               break;
-            default:
-              break;
+            }
           }
         }
 
@@ -153,16 +168,21 @@ export const DashboardStats = () => {
 
     fetchStats();
   }, [client]);
+  const rawBalance = balanceData?.value ?? 0n;
+  const formattedBTC = parseFloat(formatEther(rawBalance)).toFixed(8);
+  const formattedUSD = btcUsdPrice
+    ? (parseFloat(formattedBTC) * btcUsdPrice).toFixed(2)
+    : undefined;
 
   const cardStats = [
     {
-      title: "Outstanding Invoices",
+      title: "Created Invoices",
       value: stats.outstandingCount,
       subtext: `${Number(stats.outstandingTotal).toFixed(4)} BTC`,
       trend: "", // Optional: add comparison logic
     },
     {
-      title: "Purchased Invoices",
+      title: "Funded Invoices",
       value: stats.purchasedCount,
       subtext: `${Number(stats.investedTotal).toFixed(4)} BTC invested`,
       trend: "",
@@ -171,10 +191,9 @@ export const DashboardStats = () => {
       title: "Available Balance",
       value: isBalanceLoading
         ? "Loading..."
-        : `${balanceData?.formatted || "0.0000"} ${balanceData?.symbol || ""}`,
-      subtext: isBalanceLoading
-        ? ""
-        : `≈ $${(Number(balanceData?.formatted || "0") * 27000).toFixed(2)}`, // mock BTC price
+        : `${formattedBTC} ${balanceData?.symbol || "BTC"}`,
+      subtext:
+        isBalanceLoading || !formattedUSD ? "" : `≈ $${formattedUSD} USD`,
       trend: "",
     },
 
@@ -187,25 +206,38 @@ export const DashboardStats = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {cardStats.map((stat, index) => (
-        <Card key={index} className="gradient-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {stat.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-sm text-muted-foreground mt-1">{stat.subtext}</p>
-            {stat.trend && (
-              <p className="text-xs text-primary-foreground bg-primary font-semibold w-fit px-4 p-1 rounded-full mt-2">
-                {stat.trend}
+    <>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold tracking-tight">
+          Dashboard Overview
+        </h2>
+        <p className=" text-muted-foreground">
+          A snapshot of your invoices, performance metrics, and marketplace
+          activity. Stay on top of your operations at a glance.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {cardStats.map((stat, index) => (
+          <Card key={index} className="">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {stat.subtext}
               </p>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+              {stat.trend && (
+                <p className="text-xs text-primary-foreground bg-primary font-semibold w-fit px-4 p-1 rounded-full mt-2">
+                  {stat.trend}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
   );
 };
