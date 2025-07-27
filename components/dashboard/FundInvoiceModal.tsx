@@ -17,6 +17,7 @@ interface FundInvoiceModalProps {
   onClose: () => void;
   invoiceId: number;
   amount: string;
+  payNowAmount: string;
 }
 
 export const FundInvoiceModal = ({
@@ -24,12 +25,13 @@ export const FundInvoiceModal = ({
   onClose,
   invoiceId,
   amount,
+  payNowAmount,
 }: FundInvoiceModalProps) => {
   const { fund, isPending } = useFundInvoice();
 
   const handleConfirm = async () => {
     try {
-      await fund(invoiceId, amount);
+      await fund(invoiceId, payNowAmount);
       toast.success("Invoice funded successfully");
       onClose();
     } catch (err) {
@@ -46,11 +48,24 @@ export const FundInvoiceModal = ({
         <DialogHeader>
           <DialogTitle>Confirm Invoice Funding</DialogTitle>
         </DialogHeader>
-        <p>
-          You’re about to fund <strong>{amount} BTC</strong> for invoice #
-          {invoiceId}. Continue?
+
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <div>
+            <span className="text-foreground font-medium">You’ll Pay Now:</span>{" "}
+            {payNowAmount} BTC
+          </div>
+          <div>
+            <span className="text-foreground font-medium">You’ll Receive:</span>{" "}
+            {amount} BTC
+          </div>
+        </div>
+
+        <p className="text-sm mt-4">
+          By confirming, you agree to fund this invoice and receive the full
+          amount at maturity.
         </p>
-        <DialogFooter>
+
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
