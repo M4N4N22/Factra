@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { FundInvoiceModal } from "@/components/dashboard/FundInvoiceModal";
 import { usePublicClient } from "wagmi";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { FACTRA_ABI } from "@/lib/abi/factra"; // You need to generate this via Typechain or copy manually
 import { FACTRA_ADDRESS } from "@/lib/constants/factra"; // your deployed address here
 
@@ -22,7 +22,7 @@ interface MarketplaceInvoice {
   id: string;
   issuer: string;
   tokenId: string;
-  amount: number;
+  amount: string;
   discountRate: number;
   maturityDays: number;
   business: string;
@@ -135,7 +135,7 @@ export const InvoiceMarketplace = () => {
             return {
               id: id.toString(),
               issuer: issuer.toString(),
-              amount: parseFloat(formatEther(amount)),
+              amount: formatEther(amount),
               discountRate: discount,
               maturityDays,
               business: businessName,
@@ -179,7 +179,8 @@ export const InvoiceMarketplace = () => {
         case "yield":
           return b.yield - a.yield;
         case "amount":
-          return b.amount - a.amount;
+          return Number(b.amount) - Number(a.amount);
+
         case "maturity":
           return a.maturityDays - b.maturityDays;
         default:
@@ -267,7 +268,7 @@ export const InvoiceMarketplace = () => {
                     </div>
                     <div className="font-medium text-foreground">
                       {(
-                        invoice.amount *
+                        Number(invoice.amount) *
                         (1 - invoice.discountRate / 100)
                       ).toFixed(8)}{" "}
                       BTC
@@ -293,18 +294,40 @@ export const InvoiceMarketplace = () => {
           </Card>
         ))}
       </div>
-      {selectedInvoice && (
-  <FundInvoiceModal
-    open={modalOpen}
-    onClose={closeModal}
-    invoiceId={Number(selectedInvoice.id)}
-    amount={String(selectedInvoice.amount)} // Full invoice amount
-    payNowAmount={(
-      selectedInvoice.amount * (1 - selectedInvoice.discountRate / 100)
-    ).toFixed(8)} // Discounted amount (funding value)
-  />
-)}
 
+      {selectedInvoice &&
+        (() => {
+          console.log("Selected Invoice:", selectedInvoice);
+
+          try {
+            // Convert ETH (float) to string for parseEther
+            const ethAmount = String(selectedInvoice.amount);
+            const amountInWei = parseEther(ethAmount); // returns bigint
+            const discountRate = BigInt(selectedInvoice.discountRate);
+
+            const discountedAmountInWei =
+              amountInWei - (amountInWei * discountRate) / 100n;
+
+            console.log("Amount in Wei:", amountInWei.toString());
+            console.log(
+              "Discounted Amount in Wei:",
+              discountedAmountInWei.toString()
+            );
+
+            return (
+              <FundInvoiceModal
+                open={modalOpen}
+                onClose={closeModal}
+                invoiceId={Number(selectedInvoice.id)}
+                amount={ethAmount} // display full ETH amount
+                payNowAmount={discountedAmountInWei}
+              />
+            );
+          } catch (error) {
+            console.error("Error in invoice calculation:", error);
+            return null;
+          }
+        })()}
     </div>
   );
 };

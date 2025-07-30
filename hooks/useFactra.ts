@@ -24,6 +24,9 @@ export function useCreateInvoice() {
     rating: number,
     discountRate: number
   ) => {
+    console.log("🔧 Creating invoice with:");
+    console.log({ amount: amount.toString(), dueDate, businessName, sector, rating, discountRate });
+
     writeContract({
       address: FACTRA_CONTRACT_ADDRESS,
       abi: FACTRA_ABI,
@@ -58,16 +61,23 @@ export function useFundInvoice() {
   } = useWriteContract();
   const { isSuccess, isLoading } = useWaitForTransactionReceipt({ hash });
 
-  const fund = async (invoiceId: number, amount: string) => {
-    const amountInWei = parseEther(amount);
+  const fund = async (invoiceId: number, discountedAmount: string) => {
+    try {
+      const valueInWei = BigInt(discountedAmount);
+      console.log("[Funding Invoice]");
+      console.log("Invoice ID:", invoiceId);
+      console.log("Discounted Amount (in Wei):", valueInWei.toString());
 
-    await writeContract({
-      address: FACTRA_CONTRACT_ADDRESS,
-      abi: FACTRA_ABI,
-      functionName: "fundInvoice",
-      args: [invoiceId],
-      value: amountInWei,
-    });
+      await writeContract({
+        address: FACTRA_CONTRACT_ADDRESS,
+        abi: FACTRA_ABI,
+        functionName: "fundInvoice",
+        args: [invoiceId],
+        value: valueInWei,
+      });
+    } catch (err) {
+      console.error("[Fund Invoice Error]", err);
+    }
   };
 
   return {
@@ -76,8 +86,10 @@ export function useFundInvoice() {
     isSuccess,
     isLoading,
     hash,
+    error, // useful for UI-level error handling
   };
 }
+
 
 // ⬇️ Mark as Paid Hook
 export function useMarkAsPaid() {

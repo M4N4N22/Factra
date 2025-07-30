@@ -1,22 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
+import "hardhat/console.sol";
+
 
 contract Factra {
     uint256 public invoiceCounter;
 
-    enum InvoiceStatus { Created, Funded, Paid }
+    enum InvoiceStatus {
+        Created,
+        Funded,
+        Paid
+    }
 
     struct Invoice {
         uint256 id;
         address payable issuer;
         address payable buyer;
-        uint256 amount;     // in wei
+        uint256 amount; // in wei
         uint256 dueDate;
         InvoiceStatus status;
         string businessName;
         string sector;
-        uint8 rating;         // out of 5, e.g. 42 = 4.2
-        uint8 discountRate;   // in percentage, e.g. 8 = 8%
+        uint8 rating; // out of 5, e.g. 42 = 4.2
+        uint8 discountRate; // in percentage, e.g. 8 = 8%
     }
 
     mapping(uint256 => Invoice) public invoices;
@@ -31,7 +37,11 @@ contract Factra {
         uint8 rating,
         uint8 discountRate
     );
-    event InvoiceFunded(uint256 indexed id, address indexed buyer, uint256 amount);
+    event InvoiceFunded(
+        uint256 indexed id,
+        address indexed buyer,
+        uint256 amount
+    );
     event InvoicePaid(uint256 indexed id);
 
     function createInvoice(
@@ -71,12 +81,24 @@ contract Factra {
 
     function fundInvoice(uint256 id) external payable {
         Invoice storage inv = invoices[id];
-        require(inv.status == InvoiceStatus.Created, "Already funded or invalid");
-        require(msg.value == inv.amount, "Incorrect funding amount");
+        require(
+            inv.status == InvoiceStatus.Created,
+            "Already funded or invalid"
+        );
+
+        // Calculate discounted amount
+        uint256 discountedAmount = inv.amount -
+            ((inv.amount * inv.discountRate) / 100);
+
+        require(
+            msg.value == discountedAmount,
+            "Incorrect discounted funding amount"
+        );
 
         inv.buyer = payable(msg.sender);
         inv.status = InvoiceStatus.Funded;
 
+        // Transfer discounted amount to issuer
         inv.issuer.transfer(msg.value);
 
         emit InvoiceFunded(id, msg.sender, msg.value);
@@ -92,18 +114,24 @@ contract Factra {
         emit InvoicePaid(id);
     }
 
-    function getInvoice(uint256 id) external view returns (
-        uint256,
-        address,
-        address,
-        uint256,
-        uint256,
-        InvoiceStatus,
-        string memory,
-        string memory,
-        uint8,
-        uint8
-    ) {
+    function getInvoice(
+        uint256 id
+    )
+        external
+        view
+        returns (
+            uint256,
+            address,
+            address,
+            uint256,
+            uint256,
+            InvoiceStatus,
+            string memory,
+            string memory,
+            uint8,
+            uint8
+        )
+    {
         Invoice memory inv = invoices[id];
         return (
             inv.id,

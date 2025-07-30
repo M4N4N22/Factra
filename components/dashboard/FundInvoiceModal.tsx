@@ -2,6 +2,7 @@
 "use client";
 
 import { useFundInvoice } from "@/hooks/useFactra";
+import { formatEther } from "viem";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,7 @@ interface FundInvoiceModalProps {
   onClose: () => void;
   invoiceId: number;
   amount: string;
-  payNowAmount: string;
+  payNowAmount: bigint;
 }
 
 export const FundInvoiceModal = ({
@@ -31,7 +32,7 @@ export const FundInvoiceModal = ({
 
   const handleConfirm = async () => {
     try {
-      await fund(invoiceId, payNowAmount);
+      await fund(invoiceId, payNowAmount.toString());
       toast.success("Invoice funded successfully");
       onClose();
     } catch (err) {
@@ -52,7 +53,7 @@ export const FundInvoiceModal = ({
         <div className="space-y-2 text-sm text-muted-foreground">
           <div>
             <span className="text-foreground font-medium">You’ll Pay Now:</span>{" "}
-            {payNowAmount} BTC
+            {formatEther(payNowAmount)} BTC
           </div>
           <div>
             <span className="text-foreground font-medium">You’ll Receive:</span>{" "}
