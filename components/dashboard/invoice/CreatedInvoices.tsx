@@ -72,7 +72,7 @@ export default function CreatedInvoices({ onSelectInvoice }: Props) {
     };
 
     fetchCreated();
-  }, [client]);
+  }, [client,address]);
 
   if (!created.length)
     return <p className="text-muted-foreground bg-card p-6 rounded-xl text-center">You haven&apos;t created any invoices yet.</p>
