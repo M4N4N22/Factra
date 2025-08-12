@@ -167,7 +167,7 @@ export const DashboardStats = () => {
     };
 
     fetchStats();
-  }, [client]);
+  }, [client,address]);
   const rawBalance = balanceData?.value ?? 0n;
   const formattedBTC = parseFloat(formatEther(rawBalance)).toFixed(8);
   const formattedUSD = btcUsdPrice

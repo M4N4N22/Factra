@@ -52,7 +52,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   
-  --primary: #A5F4A6;
+  --primary: rgb(165, 244, 166);
   --primary-foreground: #000000;
   
   --secondary: #A5F4A6;

@@ -25,21 +25,6 @@ export const PreviewInvoice: React.FC<InvoicePreviewProps> = ({ data }) => {
   const formattedDiscountRate = discountRate ? `${discountRate}%` : "—";
   const formattedDueDate = dueDate ? new Date(dueDate).toDateString() : "—";
 
-  // Calculate yield
-  let calculatedYield: string | null = null;
-  if (discountRate && dueDate) {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const timeDiff = due.getTime() - today.getTime();
-    const daysToDue = timeDiff / (1000 * 60 * 60 * 24);
-    const discount = parseFloat(discountRate);
-
-    if (daysToDue > 0 && !isNaN(discount)) {
-      const yieldAnnualized = ((discount / daysToDue) * 365).toFixed(2);
-      calculatedYield = `${yieldAnnualized}% p.a.`;
-    }
-  }
-
   const InfoRow = ({ label, value }: { label: string; value: string }) => (
     <div className="flex justify-between items-center">
       <span className="text-foreground font-medium">{label}</span>

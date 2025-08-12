@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useCreateInvoice } from "@/hooks/useFactra";
-import { parseEther } from "viem";
 import { Calendar } from "../ui/calendar";
 import { format, addDays } from "date-fns";
 import { PreviewInvoice } from "./invoice/InvoicePreview";
+import InvoiceImagePreview from "../InvoiceImage/InvoiceImagePreview";
+import { useGenerateInvoiceImage } from "@/hooks/useGenerateInvoiceImage";
+import { useUploadToIPFS } from "@/hooks/useUploadToIPFS";
+import { useCreateInvoiceNFT } from "@/hooks/useCreateInvoiceNFT";
 import {
   Popover,
   PopoverContent,
@@ -26,6 +27,11 @@ import {
 import { Calendar as CalendarIcon, Info } from "lucide-react";
 
 export const CreateInvoiceForm = () => {
+  const { previewRef, generateImage } = useGenerateInvoiceImage();
+  const { uploadInvoiceNFT } = useUploadToIPFS();
+  const { createInvoiceNFT, isPending, isLoading, isSuccess, hash, error } =
+    useCreateInvoiceNFT();
+
   const [formData, setFormData] = useState({
     amount: "",
     dueDate: "",
@@ -47,47 +53,60 @@ export const CreateInvoiceForm = () => {
       ...prev,
       dueDate: minAllowedDate.toISOString().split("T")[0],
     }));
-  }, []);
+  }, [minAllowedDate]);
 
-  const { create, isPending, isSuccess, hash } = useCreateInvoice();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      const amountInWei = parseEther(formData.amount || "0");
-      const dueDateUnix = Math.floor(
-        new Date(formData.dueDate).getTime() / 1000
-      );
-      const rating = Math.round(parseFloat(formData.rating || "0") * 10); // e.g. 4.2 -> 42
-      const discountRate = parseInt(formData.discountRate || "0");
+    // 1. Generate image
+    const imageBlob = await generateImage();
 
-      await create(
-        amountInWei,
-        dueDateUnix,
-        formData.businessName,
-        formData.sector,
-        rating,
-        discountRate
-      );
+    // 2. Prepare metadata
+    const metadata = {
+      name: `Invoice - ${formData.businessName}`,
+      description: "On-chain invoice secured by Bitcoin",
+      attributes: [
+        { trait_type: "Sector", value: formData.sector },
+        { trait_type: "Credit Rating", value: formData.rating },
+        { trait_type: "Discount Rate", value: formData.discountRate },
+      ],
+    };
 
-      toast.success("Invoice creation submitted!", {
-        description: "Your invoice is now live on-chain.",
-      });
+    // 3. Upload to IPFS
+    const { metadataURI } = await uploadInvoiceNFT(imageBlob, metadata);
 
-      setFormData({
-        amount: "",
-        dueDate: "",
-        businessName: "",
-        sector: "",
-        rating: "",
-        discountRate: "",
-      });
-    } catch (err) {
-      console.error("Error:", err);
-      toast.error("Failed to create invoice.");
-    }
+    // 4. Mint NFT
+    await createInvoiceNFT(metadataURI, formData);
   };
+
+  useEffect(() => {
+    if (isPending) {
+      toast.loading("Transaction submitted, waiting for confirmation...", {
+        id: "tx-status",
+      });
+    }
+    if (isLoading) {
+      toast.loading("Confirming on blockchain...", { id: "tx-status" });
+    }
+    if (isSuccess && hash) {
+      toast.success(`Invoice NFT minted! View on explorer`, {
+        id: "tx-status",
+        action: {
+          label: "View",
+          onClick: () =>
+            window.open(
+              `https://explorer.testnet.citrea.xyz/tx/${hash}`,
+              "_blank"
+            ),
+        },
+      });
+    }
+    if (error) {
+      toast.error(
+        `Transaction failed: ${(error as any)?.message || String(error)}`
+      );
+    }
+  }, [isPending, isLoading, isSuccess, hash, error]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -123,7 +142,7 @@ export const CreateInvoiceForm = () => {
   );
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 items-center justify-center mx-auto">
+    <div className="flex flex-col md:flex-row gap-12  justify-center items-center mx-auto">
       <Card className="gradient-card max-w-2xl ">
         <CardHeader>
           <CardTitle className="text-xl">Create New Invoice</CardTitle>
@@ -264,7 +283,7 @@ export const CreateInvoiceForm = () => {
               >
                 {isPending ? "Creating..." : "Tokenize Invoice"}
               </Button>
-      
+
               {isSuccess && hash && (
                 <div className="mt-4 p-4 rounded-lg bg-card border font-semibold text-lg">
                   Invoice created successfully!
@@ -286,8 +305,49 @@ export const CreateInvoiceForm = () => {
           {/* Invoice Preview */}
         </CardContent>
       </Card>
-      <div className="w-full md:w-[320px]">
+      <div className="w-full md:w-[320px] hidden">
         <PreviewInvoice data={formData} />
+      </div>
+      {/* VISIBLE preview for the user */}
+      <div className="mt-6 w-full md:w-[320px]">
+       
+        <h3 className="text-lg font-semibold mb-2">Invoice NFT Preview</h3>
+        <InvoiceImagePreview {...formData} />
+         {/* Test Export Button */}
+         <button
+          type="button"
+          onClick={async () => {
+            try {
+              const imageBlob = await generateImage(); // already set up in your hook
+              const url = URL.createObjectURL(imageBlob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "invoice.png";
+              a.click();
+              URL.revokeObjectURL(url);
+            } catch (err) {
+              console.error("Error exporting image:", err);
+            }
+          }}
+          className="mt-4 px-4 py-2 hover:underline cursor-pointer"
+        >
+          Export Preview as PNG
+        </button>
+      </div>
+
+      {/* HIDDEN preview for image generation */}
+      <div
+        ref={previewRef}
+        style={{
+          position: "absolute",
+          top: -9999,
+          left: -9999,
+          pointerEvents: "none",
+          width: "400px", // fix width for consistent image
+          height: "600px",
+        }}
+      >
+        <InvoiceImagePreview ref={previewRef} {...formData} />
       </div>
     </div>
   );
